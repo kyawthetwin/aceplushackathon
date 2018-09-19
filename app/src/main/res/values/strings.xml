@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">AcePlusHackathonProject</string>
+    <string name="app_name">test</string>
+    <string name="back"><![CDATA[<< Back]]></string>
 </resources>
