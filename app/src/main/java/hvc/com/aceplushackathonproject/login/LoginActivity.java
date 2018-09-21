@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -12,6 +13,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,7 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText edt_email;
     @BindView(R.id.edt_loginPassword)
     EditText edt_password;
-
+    private DatabaseReference mDatabase;
     private FirebaseAuth auth;
 
     @Override
@@ -39,6 +42,7 @@ public class LoginActivity extends AppCompatActivity {
     private void init(){
         ButterKnife.bind(this);
         auth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         if (auth.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
@@ -62,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
     @OnClick(R.id.btn_login)
     public void goToLogin(){
 
-        String email = edt_email.getText().toString();
+        final String email = edt_email.getText().toString();
         final String password = edt_password.getText().toString();
 
         if (TextUtils.isEmpty(email)) {
@@ -80,7 +84,6 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (!task.isSuccessful()) {
-
                             if (password.length() < 6) {
                                 edt_password.setError("Password too short, enter minimum 6 characters!");
                             } else {
@@ -90,6 +93,12 @@ public class LoginActivity extends AppCompatActivity {
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
+                            final String UUID = task.getResult().getUser().getUid();
+
+                            Login login = new Login();
+                            login.setUuid(mDatabase.child("isLoginUser").push().getKey());
+                            mDatabase.child("isLoginUser").child(login.getUuid()).setValue(email);
+                            Log.i("UUID", UUID);
                         }
                     }
                 });
